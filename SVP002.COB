@@ -18,7 +18,7 @@
            SELECT CADCEP ASSIGN TO DISK
                ORGANIZATION IS INDEXED
                ACCESS MODE IS DYNAMIC
-               RECORD KEY IS CEPCOD
+               RECORD KEY IS CEP
                FILE STATUS IS ERRO.
 
        DATA DIVISION.
@@ -47,12 +47,15 @@
        FD  CADCEP
            LABEL RECORD IS STANDARD
            VALUE OF FILE-ID IS "CADCEP.DAT".
-       01  REGCEP.
-           03 CEPCOD PIC 9(08).
-           03 CEPLOG PIC X(30).
-           03 CEPBAIRRO PIC X(30).
-           03 CEPCIDADE PIC X(20).
-           03 CEPUF PIC X(02).
+       01  REGEND.
+           03 CEP PIC 9(8).
+           03 LOGRADOURO PIC X(20).
+           03 BAIRRO PIC X(20).
+           03 UF PIC X(2).
+           03 CEPREF PIC 9(8).
+           03 TIPOPISO PIC 9(1).
+           03 OBS PIC X(60).
+           03 CIDADE PIC X(20).
 
        WORKING-STORAGE SECTION.
        01  ERRO PIC X(02) VALUE "00".
@@ -65,6 +68,7 @@
        01  DESCUF PIC X(20).
        01  DESCTIPO1 PIC X(30).
        01  DESCTIPO2 PIC X(30).
+       01  OPC PIC X(3).
        01  INDICE PIC 9(03).
        01  TABTIPOPESX.
            03 FILLER PIC X(30) VALUE "F FISICA".
@@ -75,6 +79,17 @@
        01  TXTTIPOPES.
            03 TXTTIPOPES1 PIC X(01) VALUE SPACES.
            03 TXTTIPOPES2 PIC X(29) VALUE SPACES.
+
+       01  TABTIPOTELX.
+           03 FILLER PIC X(30) VALUE "F FIXO".
+           03 FILLER PIC X(30) VALUE "C CELULAR".
+           03 FILLER PIC X(30) VALUE "E EMPRESA".
+       01  TABTIPOTEL REDEFINES TABTIPOTELX.
+           03 TBTIPOTEL PIC X(30) OCCURS 3 TIMES.
+       01  TXTTIPOTEL.
+           03 TXTTIPOTEL1 PIC X(01) VALUE SPACES.
+           03 TXTTIPOTEL2 PIC X(29) VALUE SPACES.
+
 
        SCREEN SECTION.
        
@@ -165,16 +180,16 @@
                USING  NUMEROLOG.
            05  TBAIRRO
                LINE 15  COLUMN 55  PIC X(13)
-               USING  CEPBAIRRO.
+               USING  BAIRRO.
            05  TCOMP
                LINE 18  COLUMN 15  PIC X(12)
                USING  COMPLEMENTO.
            05  TCIDADE
                LINE 18  COLUMN 40  PIC X(20)
-               USING  CEPCIDADE.
+               USING  CIDADE.
            05  TUF
                LINE 20  COLUMN 06  PIC X(02)
-               USING  CEPUF.
+               USING  UF.
 
        01  TELATIPOS.
            05  LINE 07  COLUMN 41 
@@ -268,6 +283,7 @@
                    MOVE TXTTIPOPES2 TO DESCTIPOPES
                    DISPLAY DESCTIPOPES.
        FN-CPF.
+           MOVE 0 TO INDICE.
            ACCEPT TCPFCNPJ.
            ACCEPT ESC-KEY FROM ESCAPE KEY
            IF ESC-KEY = 01
@@ -283,14 +299,63 @@
                  PERFORM FN-MENS THRU FN-MENS-FIM
                  GO TO FN-FIM.
 
-       FN-TELEFONE1.
+       FN-DDD1.
            ACCEPT TDDD1.
+
+       FN-TELEFONE1.
            ACCEPT TNUMERO1.  
+           
+       FN-TIPOTEL1.
+           ACCEPT TTIPO1.
+           MOVE 1 TO INDICE.
+       FN-TIPOTEL1A.
+           MOVE TBTIPOTEL(INDICE) TO TXTTIPOTEL
+           IF TXTTIPOTEL1 NOT = TIPO1
+               ADD 1 TO INDICE
+               IF INDICE < 4
+                   GO TO FN-TIPOTEL1A
+               ELSE
+                   MOVE "TIPO TELEFONE INCORRETO" TO MENS
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-TIPOTEL1
+               ELSE
+                   MOVE TXTTIPOTEL2 TO DESCTIPO1
+                   DISPLAY DESCTIPO1.
+
+       FN-DDD2.
+           ACCEPT TDDD2.
+           
+       FN-TELEFONE2.
+           ACCEPT TNUMERO2.
+       FN-TIPOTEL2.
+           MOVE 0 TO INDICE.
+           ADD 1 TO INDICE.
+           ACCEPT TTIPO2.
+           ACCEPT ESC-KEY FROM ESCAPE KEY
+           IF ESC-KEY = 01
+                 MOVE " SAINDO DO PROGRAMA " TO MENS
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM.
+           
+       FN-TIPOTEL2A.
+           MOVE TBTIPOTEL(INDICE) TO TXTTIPOTEL
+           IF TXTTIPOTEL1 NOT = TIPO2
+               ADD 1 TO INDICE
+               IF INDICE < 4
+                   GO TO FN-TIPOTEL2A
+               ELSE
+                   MOVE " INCORRETO " TO MENS
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-TIPOTEL2
+               ELSE
+                   MOVE TXTTIPOTEL2 TO DESCTIPO2
+                   DISPLAY DESCTIPO2.
+
 
        FN-CEP.
            ACCEPT TCEP.
        FN-CEP2.
-           MOVE CEPCLIENTE TO CEPCOD
+           MOVE CEPCLIENTE TO CEP
            READ CADCEP
            DISPLAY TELACLIENTE
            IF ERRO NOT = "00"
@@ -303,7 +368,32 @@
                    MOVE ERRO TO MENS2
                    PERFORM FN-MENS THRU FN-MENS-FIM
                    GO TO FN-FIM.
-           
+
+       FN-NUM.
+           ACCEPT TNUMLOG.
+
+       FN-COMP.
+           ACCEPT TCOMP.
+           IF ESC-KEY = 01
+                 MOVE " SAINDO DO PROGRAMA " TO MENS
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM.
+
+       FN-REGISTRO.
+           DISPLAY (23, 15) "GRAVAR? (S/N): ".
+           ACCEPT (23, 30) OPC
+           IF OPC = "S"
+               WRITE REGCLI
+               GO TO FN-COD
+           ELSE
+               IF OPC NOT = "N"
+                   MOVE "DIGITE S OU N" TO MENS
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-REGISTRO
+                ELSE
+                    MOVE "REGISTRO NAO GRAVADO" TO MENS
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-FIM.
 
        FN-MENS.
            MOVE ZEROS TO CONTADOR.
