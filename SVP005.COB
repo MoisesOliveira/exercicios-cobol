@@ -80,49 +80,87 @@
            03 CEPBAIRRO PIC X(30).
            03 CEPCIDADE PIC X(20).
 
-       FD  CADPROD.
+       FD  CADPROD
            LABEL RECORD IS STANDARD
            VALUE OF FILE-ID IS "CADPROD.DAT".
 
+       01  REGPROD.
+           03 NOME PIC X(40).
+           03 CODPROD PIC 9(06).
 
        WORKING-STORAGE SECTION.
        01  ERRO PIC X(02) VALUE "00".
+       01  MENS.
+           03 MENS1 PIC X(50) VALUE SPACES.
+           03 MENS2 PIC ZZZ.
+       01  CONTADOR PIC 9(03) VALUE ZERO.
 
        PROCEDURE DIVISION.
-
-       R0.
+       FN-ABRE1.
            OPEN I-O CADPEDIDO
            IF ERRO NOT = "00"  
               IF ERRO = "30"
                  OPEN OUTPUT CADPEDIDO
                  CLOSE CADPEDIDO
-                 DISPLAY (23, 12) "*** ARQUIVO CADAMIGO FOI CRIADO **" 
-                 GO TO R0
+                 MOVE " ARQUIVO SENDO CRIADO " TO MENS
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-ABRE1
               ELSE
-                 MOVE "ERRO NA ABERTURA DO ARQUIVO CADMIGO =>" TO MENS1
-                 MOVE ST-ERRO TO MENS2
-                 PERFORM ROT-MENS THRU ROT-MENS-FIM
-                 GO TO ROT-FIM
+                 MOVE "ERRO NA ABERTURA DO ARQUIVO PEDIDO =>" TO MENS1
+                 MOVE ERRO TO MENS2
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM
            ELSE
                  NEXT SENTENCE.
       *
-       R0A.
+       FN-ABRE2.
            OPEN INPUT CADCEP
-           IF ST-ERRO NOT = "00"  
-              IF ST-ERRO = "30"
+           IF ERRO NOT = "00"  
+              IF ERRO = "30"
                  MOVE "* ARQUIVO CADCEP NAO ENCONTRADO *" TO MENS
-                 PERFORM ROT-MENS THRU ROT-MENS-FIM
-                 GO TO ROT-FIM
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM
               ELSE
                  MOVE "ERRO NA ABERTURA DO ARQUIVO CEP " TO MENS1
-                 MOVE ST-ERRO TO MENS2
-                 PERFORM ROT-MENS THRU ROT-MENS-FIM
-                 GO TO ROT-FIM
+                 MOVE ERRO TO MENS2
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM
            ELSE
                  NEXT SENTENCE.
 
+       FN-ABRE3.
+           OPEN INPUT CADCLI
+           IF ERRO NOT = "00"  
+              IF ERRO = "30"
+                 MOVE "* ARQUIVO CADCLI NAO ENCONTRADO *" TO MENS
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM
+              ELSE
+                 MOVE "ERRO NA ABERTURA DO ARQUIVO CLIENTE " TO MENS1
+                 MOVE ERRO TO MENS2
+                 PERFORM FN-MENS THRU FN-MENS-FIM
+                 GO TO FN-FIM
+           ELSE
+                 NEXT SENTENCE.
 
+       FN-MENS.
+           MOVE ZEROS TO CONTADOR.
+       FN-MENS2.
+           DISPLAY (23, 12) MENS.
+       FN-MENS3.
+           ADD 1 TO CONTADOR
+           IF CONTADOR < 800
+               GO TO FN-MENS3
+           ELSE
+               MOVE SPACES TO MENS
+               DISPLAY (23, 12) MENS.
+       FN-MENS-FIM.
+           EXIT.
 
-
-       DISPLAY (12, 05) "DIGITE O CEP AI:".
-       DISPLAY (12, 10) ACCEPT 
+       FN-FIM.
+           CLOSE CADCEP.
+           CLOSE CADPEDIDO.
+           CLOSE CADCLI.
+           CLOSE CADFORN.
+           CLOSE CADPROD.
+           EXIT PROGRAM.
