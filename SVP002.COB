@@ -158,7 +158,7 @@
                LINE 12  COLUMN 45  PIC X(30)
                USING  DESCTIPO2.
            05  TCEP
-               LINE 15  COLUMN 07  PIC 9(08)
+               LINE 15  COLUMN 07  PIC 99999.999
                USING  CEPCLIENTE.
            05  TNUMLOG
                LINE 15  COLUMN 28  PIC 9(05)
@@ -287,6 +287,23 @@
            ACCEPT TDDD1.
            ACCEPT TNUMERO1.  
 
+       FN-CEP.
+           ACCEPT TCEP.
+       FN-CEP2.
+           MOVE CEPCLIENTE TO CEPCOD
+           READ CADCEP
+           DISPLAY TELACLIENTE
+           IF ERRO NOT = "00"
+               IF ERRO = "23"
+                   MOVE " CEP NAO CADASTRADO " TO MENS 
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-CEP
+               ELSE
+                   MOVE " ERRO NA LEITURA " TO MENS1
+                   MOVE ERRO TO MENS2
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-FIM.
+           
 
        FN-MENS.
            MOVE ZEROS TO CONTADOR.
