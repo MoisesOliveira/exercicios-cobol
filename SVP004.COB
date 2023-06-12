@@ -216,6 +216,20 @@
 
        FN-UNID.
            ACCEPT TUNID.
+           MOVE 1 TO INDICE.
+       FN-UNID2.
+           MOVE TBUNID(INDICE) TO TXTUNID
+           IF TXTUNID1 NOT = UNID
+               ADD 1 TO INDICE
+               IF INDICE < 6
+                   GO TO FN-UNID2
+               ELSE
+                   MOVE "UNIDADE INCORRETA" TO MENS
+                   PERFORM FN-MENS THRU FN-MENS-FIM
+                   GO TO FN-UNID
+           ELSE
+               MOVE TXTUNID2 TO DESCUNIDADE.
+               DISPLAY TDESCUNID.
 
 
        FN-TIPO.
