@@ -51,6 +51,7 @@
            03 TXTUF2 PIC X(18) VALUE SPACES.
 
        01  ESC-KEY PIC 9(02) VALUE ZEROS.
+       01  OPC-KEY PIC X(02) VALUE SPACES.
        01  MENS PIC X(100) VALUE SPACES.
        01  CONT PIC 9(5).
        01  INDICE PIC 9(02).
@@ -176,8 +177,9 @@
            IF ERRO NOT = "23"
                IF ERRO = "00"
                    MOVE "ENDERECO JA CADASTRADO" TO MENS
+                   DISPLAY TELAEND
                    PERFORM ROTINA-MENS THRU ROTINA-MENS-FIM
-                   GO TO OP-CEP
+                   GO TO FN-OPCOES
                ELSE
                    MOVE "ERRO NA LEITURA DO ARQUIVO" TO MENS
                    PERFORM ROTINA-MENS THRU ROTINA-MENS-FIM
@@ -292,6 +294,41 @@
                     MOVE "REGISTRO NAO GRAVADO" TO MENS
                    PERFORM ROTINA-MENS THRU ROTINA-MENS-FIM
                    GO TO ROTINA-FIM.
+
+
+       FN-EXCLUIR.
+           DISPLAY (23, 12) "EXCLUIR?".
+           ACCEPT (23, 30) OPC-KEY
+           IF OPC-KEY = "N" OR "n"
+               MOVE " REGISTRO NAO EXCLUIDO " TO MENS
+               PERFORM ROTINA-MENS THRU ROTINA-MENS-FIM
+               GO TO PREPARA.
+           IF OPC-KEY = "S" OR "s"
+               DELETE CADEND RECORD
+               MOVE " REGISTRO EXCLUIDO COM SUCESSO" TO MENS
+               PERFORM ROTINA-MENS THRU ROTINA-MENS-FIM.
+       
+       FN-OPCOES.
+           MOVE "N = NOVO A = ALTERAR E = EXCLUIR" TO MENS
+           DISPLAY (23, 12) MENS
+           ACCEPT (23, 60) OPC-KEY
+           IF OPC-KEY NOT = "N" AND OPC-KEY = "A" AND OPC-KEY = "E"
+               GO TO FN-OPCOES.
+           MOVE SPACES TO MENS
+           DISPLAY (23, 12) MENS
+           IF OPC-KEY = "N"
+               GO TO PREPARA
+               MOVE SPACES TO MENS
+               DISPLAY (23, 12) MENS
+           ELSE IF OPC-KEY = "A"
+               GO TO OP-LOG
+               MOVE SPACES TO MENS
+               DISPLAY (23, 12) MENS
+
+           ELSE IF OPC-KEY = "E"
+               GO TO FN-EXCLUIR
+               MOVE SPACES TO MENS
+               DISPLAY (23, 12) MENS.
 
 
        ROTINA-MENS.
