@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. SVP002.
+       PROGRAM-ID. SVP003.
        AUTHOR. MSZS.
 
        ENVIRONMENT DIVISION.
@@ -9,10 +9,10 @@
 
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT CADCLI ASSIGN TO DISK
+           SELECT CADFORN ASSIGN TO DISK
                ORGANIZATION IS INDEXED
                ACCESS MODE  IS DYNAMIC
-               RECORD KEY   IS CODCLIE
+               RECORD KEY   IS CODFORN
                FILE STATUS  IS ERRO.
            
            SELECT CADCEP ASSIGN TO DISK
@@ -23,16 +23,16 @@
 
        DATA DIVISION.
        FILE SECTION.
-       FD  CADCLI
+       FD  CADFORN
            LABEL RECORD IS STANDARD
-           VALUE OF FILE-ID IS "CADCLI.DAT".
-       01  REGCLI.
-           03 CODCLIE PIC 9(06).
+           VALUE OF FILE-ID IS "CADFORN.DAT".
+       01  REGFORN.
+           03 CODFORN PIC 9(06).
            03 NOME PIC X(30).
            03 TIPOPESSOA PIC X(1).
            03 CNPJCPF PIC 9(15).
            03 NUMEROLOG PIC 9(5).
-           03 CEPCLIENTE PIC 9(08).
+           03 CEPFORN PIC 9(08).
            03 COMPLEMENTO PIC X(12).
            03 EMAIL PIC X(30).
            03 TELEFONE1.
@@ -95,11 +95,11 @@
 
        SCREEN SECTION.
        
-       01  TELACLIENTE.
+       01  TELAFORN.
            05  LINE 01  COLUMN 01 
                VALUE  "                             CADASTRO DE".
            05  LINE 01  COLUMN 41 
-               VALUE  " CLIENTES".
+               VALUE  " FORNECEDORES".
            05  LINE 03  COLUMN 01 
                VALUE  " CODIGO:                               C".
            05  LINE 03  COLUMN 41 
@@ -134,7 +134,7 @@
                VALUE  " MENSAGEM:".
            05  TCODCLI
                LINE 03  COLUMN 10  PIC 9(06)
-               USING  CODCLIE.
+               USING  CODFORN.
            05  TCPFCNPJ
                LINE 03  COLUMN 50  PIC 9(15)
                USING  CNPJCPF.
@@ -176,7 +176,7 @@
                USING  DESCTIPO2.
            05  TCEP
                LINE 15  COLUMN 07  PIC 99999.999
-               USING  CEPCLIENTE.
+               USING  CEPFORN.
            05  TNUMLOG
                LINE 15  COLUMN 28  PIC 9(05)
                USING  NUMEROLOG.
@@ -202,11 +202,11 @@
        PROCEDURE DIVISION.
       *
        FN-ABRE2.
-           OPEN I-O CADCLI
+           OPEN I-O CADFORN
            IF ERRO NOT = "00"  
               IF ERRO = "30"
-                 OPEN OUTPUT CADCLI
-                 CLOSE CADCLI
+                 OPEN OUTPUT CADFORN
+                 CLOSE CADFORN
                  MOVE " ARQUIVO SENDO CRIADO " TO MENS
                  PERFORM FN-MENS THRU FN-MENS-FIM
                  GO TO FN-ABRE2
@@ -226,7 +226,7 @@
                  PERFORM FN-MENS THRU FN-MENS-FIM
                  GO TO FN-FIM
               ELSE
-                 MOVE "ERRO NA ABERTURA DO ARQUIVO CLIENTE " TO MENS1
+                 MOVE "ERRO NA ABERTURA DO ARQUIVO FORN " TO MENS1
                  MOVE ERRO TO MENS2
                  PERFORM FN-MENS THRU FN-MENS-FIM
                  GO TO FN-FIM
@@ -234,9 +234,9 @@
                  NEXT SENTENCE.
 
        FN-INICIO.
-           MOVE ZEROS TO CODCLIE CNPJCPF DDD1 NUMERO1 DDD2 NUMERO2
-           CEPCLIENTE NUMEROLOG.
-           DISPLAY TELACLIENTE.
+           MOVE ZEROS TO CODFORN CNPJCPF DDD1 NUMERO1 DDD2 NUMERO2
+           CEPFORN NUMEROLOG.
+           DISPLAY TELAFORN.
 
        FN-COD.
            ACCEPT TCODCLI.
@@ -246,11 +246,11 @@
                  PERFORM FN-MENS THRU FN-MENS-FIM
                  GO TO FN-FIM.
 
-       FN-READ-CLIENTE.
-           READ CADCLI
+       FN-READ-FORN.
+           READ CADFORN
            IF ERRO NOT = "23"
                IF ERRO = "00"
-                   MOVE " CLIENTE JA CADASTRADO " TO MENS
+                   MOVE " FORN JA CADASTRADO " TO MENS
                    PERFORM FN-MENS THRU FN-MENS-FIM
                    GO TO FN-OPCOES.
        FN-NOME.
@@ -357,9 +357,9 @@
        FN-CEP.
            ACCEPT TCEP.
        FN-CEP2.
-           MOVE CEPCLIENTE TO CEP
+           MOVE CEPFORN TO CEP
            READ CADCEP
-           DISPLAY TELACLIENTE
+           DISPLAY TELAFORN
            IF ERRO NOT = "00"
                IF ERRO = "23"
                    MOVE " CEP NAO CADASTRADO " TO MENS 
@@ -385,7 +385,7 @@
            DISPLAY (23, 15) "GRAVAR? (S/N): ".
            ACCEPT (23, 30) OPC
            IF OPC = "S"
-               WRITE REGCLI
+               WRITE REGFORN
                GO TO FN-COD
            ELSE
                IF OPC NOT = "N"
@@ -405,7 +405,7 @@
                PERFORM FN-MENS THRU FN-MENS-FIM
                GO TO FN-INICIO.
            IF OPC-KEY = "S" OR "s"
-               DELETE CADCLI RECORD
+               DELETE CADFORN RECORD
                MOVE " REGISTRO EXCLUIDO COM SUCESSO" TO MENS
                PERFORM FN-MENS THRU FN-MENS-FIM.
        
@@ -448,5 +448,5 @@
 
        FN-FIM.
            CLOSE CADCEP.
-           CLOSE CADCLI.
+           CLOSE CADFORN.
            EXIT PROGRAM.
